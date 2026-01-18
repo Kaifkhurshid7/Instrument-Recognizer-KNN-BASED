@@ -21,6 +21,12 @@ coverage/
 .vscode/
 .idea/
 
+# Data & Models
+IRMAS-TrainingData/
+backend/IRMAS-TrainingData/
+*.pkl
+*.png
+
 # OS
 .DS_Store
 Thumbs.db
