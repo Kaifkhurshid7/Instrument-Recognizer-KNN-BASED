@@ -1,4 +1,4 @@
-# 🎵 Instrument Recognizer (KNN-BASED)
+# Instrument Recognizer (KNN-BASED)
 
 An explainable audio intelligence platform that identifies musical instruments using spectral feature analysis and K-Nearest Neighbors (KNN) classification.
 
