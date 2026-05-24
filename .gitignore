@@ -1,7 +1,12 @@
+# =============================================================
+# Instrument Recognizer - Git Ignore
+# =============================================================
+
 # Python
 __pycache__/
-*.py[oc]
+*.py[cod]
 *$py.class
+*.so
 .venv/
 venv/
 ENV/
@@ -10,22 +15,26 @@ env/
 
 # Node
 node_modules/
-dist/
 build/
+dist/
 .pnp
 .pnp.js
 coverage/
+
+# Data & Models (large binary files)
+backend/IRMAS-TrainingData/
+*.pkl
+backend/uploads/
+
+# Generated artifacts
+*.png
 *.log
 
 # IDEs
 .vscode/
 .idea/
-
-# Data & Models
-IRMAS-TrainingData/
-backend/IRMAS-TrainingData/
-*.pkl
-*.png
+*.swp
+*.swo
 
 # OS
 .DS_Store

@@ -1,109 +1,209 @@
-# Instrument Recognizer (KNN-BASED)
+# Instrument Recognizer
 
-An explainable audio intelligence platform that identifies musical instruments using spectral feature analysis and K-Nearest Neighbors (KNN) classification.
+An explainable audio intelligence platform that identifies musical instruments from audio files using spectral feature analysis and K-Nearest Neighbors (KNN) classification.
 
-![Banner](https://img.shields.io/badge/Status-Active-brightgreen)
-![Tech](https://img.shields.io/badge/Stack-Flask%20%7C%20React%20%7C%20Librosa-blue)
+![Python](https://img.shields.io/badge/Python-3.8+-blue)
+![React](https://img.shields.io/badge/React-19-61dafb)
+![Flask](https://img.shields.io/badge/Flask-3.1-green)
+![License](https://img.shields.io/badge/License-Educational-orange)
 
-## 🚀 Overview
-The Instrument Recognizer is a full-stack web application designed to classify musical instruments from audio files (.wav, .mp3). Unlike "black-box" AI models, this project focuses on **explainable AI**, providing users with a visual breakdown of the spectral features (the "fingerprint") that led to a specific classification.
+---
+
+## Overview
+
+Unlike black-box deep learning models, this project focuses on **explainable AI**. Users receive a full visual breakdown of the spectral features (the "fingerprint") that led to a classification, making the decision process transparent and interpretable.
 
 ### Key Features
-- **Real-time Spectral Analysis:** Extracts 10 unique dimensions of audio, including MFCCs, Chroma, and Spectral Centroid.
-- **Explainable Results:**
-    - **Waveform Visualization:** View the raw time-domain signal.
-    - **Feature Fingerprint Comparison:** A radar chart comparing the input audio's features against the database average for the identified instrument.
-    - **Probability Distribution:** See how the KNN model scored other potential instrument matches.
-- **Detailed CSV Reports:** Download a full spectral analysis report for offline use.
-- **Modern UI:** Built with Material UI and Chart.js for a premium, dark-themed analytical experience.
+
+- **10-Dimensional Spectral Analysis** — Extracts MFCCs, Chroma, Spectral Centroid, Rolloff, ZCR, and Bandwidth
+- **Explainable Results** — Radar chart comparing input fingerprint vs. database average
+- **Probability Distribution** — See how the model scored all instrument classes
+- **Waveform Visualization** — Raw time-domain signal display
+- **CSV Reports** — Download detailed analysis for offline review
+- **Drag & Drop Upload** — Modern, responsive dark-themed UI
+
+### Supported Instruments (11 Classes)
+
+Acoustic Guitar · Cello · Clarinet · Electric Guitar · Flute · Human Voice · Organ · Piano · Saxophone · Trumpet · Violin
 
 ---
 
-## 🛠️ Technical Stack
+## Architecture
 
-### Backend (AI & API)
-- **Python / Flask:** Lightweight REST API.
-- **Librosa:** Robust audio processing and feature extraction.
-- **Scikit-learn:** KNN classifier with cosine similarity metrics for high-accuracy matching.
-- **StandardScaler:** Ensures feature normalization for unbiased classification.
+```
+┌─────────────────┐         POST /analyze         ┌──────────────────────┐
+│                 │  ──────────────────────────▶   │                      │
+│   React UI      │                               │   Flask API Server   │
+│   (Port 3000)   │  ◀──────────────────────────  │   (Port 5000)        │
+│                 │         JSON Response          │                      │
+└─────────────────┘                               └──────────────────────┘
+                                                           │
+                                                           ▼
+                                                  ┌──────────────────────┐
+                                                  │  KNN Classifier      │
+                                                  │  (Cosine Distance)   │
+                                                  │  K=7, Weighted       │
+                                                  └──────────────────────┘
+                                                           │
+                                                           ▼
+                                                  ┌──────────────────────┐
+                                                  │  Reference Database  │
+                                                  │  (3700+ fingerprints)│
+                                                  └──────────────────────┘
+```
 
-### Frontend (UI/UX)
-- **React:** Modern component-based architecture.
-- **MUI (Material UI):** Professional-grade dark theme and layout.
-- **Chart.js:** Dynamic rendering of waveforms, radar charts, and bar graphs.
-- **Axios:** Asynchronous communication with the Flask backend.
+### How Classification Works
 
----
-
-## 🧠 How It Works (KNN Spectral Analysis)
-The system uses a **Fingerprinting Approach** to classify audio:
-1. **Feature Extraction:** The audio is analyzed to extract a 10-dimensional vector:
-    - **MFCC (Mean & Std):** Captures timbre and texture.
-    - **Chroma (Mean & Std):** Captures harmonic content.
-    - **Spectral Centroid:** Measures "brightness."
-    - **Spectral Rolloff:** Captures the shape of the spectral power distribution.
-    - **Zero Crossing Rate:** Measure of noisiness.
-    - **Spectral Bandwidth:** Measures the "richness" of the sound.
-2. **Normalization:** The input vector is scaled using a pre-trained `StandardScaler`.
-3. **Classification:** A **K-Nearest Neighbors (K=7)** classifier calculates the **Cosine Distance** between the input vector and thousands of reference fingerprints in the `reference_database`.
-4. **Result:** The instrument with the highest aggregate similarity (weighted by distance) is returned.
-
----
-
-## 📥 Installation & Setup
-
-### Prerequisites
-- Python 3.8+
-- Node.js & npm
-
-### Backend Setup
-1. Navigate to the `backend` folder:
-   ```bash
-   cd backend
-   ```
-2. Install dependencies:
-   ```bash
-   pip install -r ../requirements.txt
-   ```
-3. Run the Flask server:
-   ```bash
-   python app.py
-   ```
-   *The server will start on `http://127.0.0.1:5000`*
-
-### Frontend Setup
-1. Navigate to the `frontend` folder:
-   ```bash
-   cd frontend
-   ```
-2. Install packages:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm start
-   ```
-   *The application will open on `http://localhost:3000`*
+1. **Feature Extraction** — Audio is loaded at 22050 Hz and analyzed to produce a 10-dimensional vector
+2. **Normalization** — The vector is scaled using a pre-trained `StandardScaler` to prevent feature dominance
+3. **KNN Classification** — Cosine distance is computed against 3700+ reference fingerprints (K=7, distance-weighted)
+4. **Result** — The instrument with highest aggregate similarity is returned with full probability distribution
 
 ---
 
-## 📂 Project Structure
-```text
-.
+## Project Structure
+
+```
 ├── backend/
-│   ├── app.py          # Flask Server & Logic
-│   ├── reference_database.pkl # Pre-extracted spectral data
-│   └── uploads/        # Temporary audio storage
+│   ├── app.py                  # Flask server & API routes
+│   ├── classifier.py           # KNN model training & prediction
+│   ├── feature_extraction.py   # Shared 10-D feature extraction
+│   ├── config.py               # Centralized configuration
+│   ├── build_database.py       # Script to build reference_database.pkl
+│   └── IRMAS-TrainingData/     # Training audio dataset (not in git)
+│
 ├── frontend/
 │   ├── src/
-│   │   └── App.js      # Main UI Logic
-│   └── package.json    # Frontend dependencies
-├── requirements.txt    # Backend dependencies
-└── README.md           # You are here!
+│   │   ├── App.js              # Root component (orchestrator)
+│   │   ├── config/
+│   │   │   ├── theme.js        # MUI dark theme
+│   │   │   └── constants.js    # Feature labels, colors, API URL
+│   │   ├── services/
+│   │   │   └── api.js          # Backend communication layer
+│   │   ├── components/
+│   │   │   ├── Header.js       # App title & branding
+│   │   │   ├── FileUpload.js   # Drag-and-drop upload
+│   │   │   ├── ResultCard.js   # Instrument + confidence display
+│   │   │   ├── FeatureTable.js # Numerical feature comparison
+│   │   │   └── charts/
+│   │   │       ├── WaveformChart.js    # Time-domain signal
+│   │   │       ├── ProbabilityChart.js # Class probabilities
+│   │   │       └── RadarChart.js       # Feature fingerprint overlay
+│   │   └── utils/
+│   │       └── reportGenerator.js  # CSV export logic
+│   └── .env                    # Environment config
+│
+├── requirements.txt            # Python dependencies
+└── README.md
 ```
 
 ---
 
-## 📜 License
-Developed for educational and research purposes in musical information retrieval (MIR).
+## Setup & Installation
+
+### Prerequisites
+
+- Python 3.8+ (tested with 3.10)
+- Node.js 18+ & npm
+- FFmpeg (required by pydub for audio conversion)
+
+### Backend
+
+```bash
+cd backend
+
+# Create virtual environment (recommended)
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+# source .venv/bin/activate   # macOS/Linux
+
+# Install dependencies
+pip install -r ../requirements.txt
+
+# Build the reference database (first time only, takes ~2 min)
+python build_database.py
+
+# Start the API server
+python app.py
+```
+
+The server starts at `http://127.0.0.1:5000`
+
+### Frontend
+
+```bash
+cd frontend
+
+# Install packages
+npm install
+
+# Start development server
+npm start
+```
+
+The app opens at `http://localhost:3000`
+
+---
+
+## API Reference
+
+### `POST /analyze`
+
+Upload an audio file for classification.
+
+**Request:** `multipart/form-data` with field `audioFile`
+
+**Response:**
+```json
+{
+  "instrument": "Piano",
+  "confidence_score": 87.34,
+  "waveform": { "time": [...], "amplitude": [...] },
+  "feature_vector": [10 floats],
+  "compared_vector": [10 floats],
+  "knn_probabilities": [{ "name": "Piano", "score": 87.34 }, ...]
+}
+```
+
+### `GET /health`
+
+Server health check.
+
+**Response:** `{ "status": "ok", "model_ready": true }`
+
+---
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `5000` | Backend server port |
+| `FLASK_DEBUG` | `true` | Enable Flask debug mode |
+| `REACT_APP_API_URL` | `http://127.0.0.1:5000` | Backend URL for frontend |
+
+---
+
+## Technical Decisions
+
+- **KNN over Deep Learning** — Chosen for explainability. Users can see exactly which features drove the classification.
+- **Cosine Distance** — Works better than Euclidean for spectral fingerprints because it measures directional similarity regardless of magnitude.
+- **K=7** — Odd number prevents ties; 7 provides good balance between noise resistance and locality.
+- **StandardScaler** — Prevents high-magnitude features (like spectral centroid ~2000 Hz) from dominating low-magnitude ones (like ZCR ~0.05).
+
+---
+
+## Future Improvements
+
+- [ ] Add audio recording directly in browser
+- [ ] Support multi-instrument detection in polyphonic audio
+- [ ] Add confusion matrix visualization for model evaluation
+- [ ] Implement user feedback loop for model improvement
+- [ ] Deploy with Docker (backend + frontend in one compose file)
+- [ ] Add audio augmentation for improved generalization
+
+---
+
+## License
+
+Developed for educational and research purposes in Musical Information Retrieval (MIR).
+Dataset: [IRMAS](https://www.upf.edu/web/mtg/irmas) (Instrument Recognition in Musical Audio Signals).

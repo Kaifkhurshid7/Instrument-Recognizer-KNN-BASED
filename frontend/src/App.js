@@ -1,9 +1,25 @@
-import React, { useState, useRef, useMemo } from 'react';
-import axios from 'axios';
+/**
+ * Instrument Recognizer - Main Application
+ * ==========================================
+ * Root component that orchestrates the analysis workflow:
+ * 1. User uploads an audio file
+ * 2. File is sent to Flask backend for spectral analysis
+ * 3. Results are displayed with multiple explainability views
+ *
+ * Architecture: Thin orchestrator that delegates rendering
+ * to focused child components.
+ */
 
-/* =======================
-   Chart.js
-======================= */
+import React, { useState } from "react";
+import {
+  ThemeProvider,
+  CssBaseline,
+  Container,
+  Alert,
+  Fade,
+  CircularProgress,
+  Box,
+} from "@mui/material";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,50 +30,21 @@ import {
   BarElement,
   Tooltip,
   Legend,
-  Filler
-} from 'chart.js';
+  Filler,
+} from "chart.js";
 
-import { Radar, Bar, Line } from 'react-chartjs-2';
+import theme from "./config/theme";
+import { analyzeAudio } from "./services/api";
+import { downloadCSVReport } from "./utils/reportGenerator";
+import Header from "./components/Header";
+import FileUpload from "./components/FileUpload";
+import ResultCard from "./components/ResultCard";
+import WaveformChart from "./components/charts/WaveformChart";
+import ProbabilityChart from "./components/charts/ProbabilityChart";
+import RadarChart from "./components/charts/RadarChart";
+import FeatureTable from "./components/FeatureTable";
 
-/* =======================
-   MUI
-======================= */
-import {
-  ThemeProvider,
-  createTheme,
-  CssBaseline,
-  Container,
-  Box,
-  Typography,
-  Button,
-  Card,
-  CircularProgress,
-  Alert,
-  Paper
-} from '@mui/material';
-
-/* =======================
-   Table
-======================= */
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow
-} from '@mui/material';
-
-/* =======================
-   Icons
-======================= */
-import FileUploadIcon from '@mui/icons-material/FileUpload';
-import AnalyticsIcon from '@mui/icons-material/Analytics';
-import DescriptionIcon from '@mui/icons-material/Description';
-
-/* =======================
-   Chart Register
-======================= */
+// Chart.js registration (required once at app level)
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -70,167 +57,36 @@ ChartJS.register(
   Filler
 );
 
-/* =======================
-   ULTRA DARK PROFESSIONAL THEME
-======================= */
-const theme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: { main: '#5fcad8' },
-    background: {
-      default: '#070a10',
-      paper: '#111827'
-    },
-    text: {
-      primary: '#eaf0f6',
-      secondary: '#9aa4b2'
-    }
-  },
-  typography: {
-    fontFamily: '"Inter", system-ui, sans-serif',
-    h3: { fontWeight: 600 },
-    h4: { fontWeight: 600, letterSpacing: '0.04em' }
-  },
-  components: {
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 16,
-          border: '1px solid #1f2633',
-          boxShadow: '0 12px 36px rgba(0,0,0,0.6)'
-        }
-      }
-    }
-  }
-});
-
-/* =======================
-   FEATURES
-======================= */
-const features = [
-  { name: 'MFCC Mean', desc: 'Average timbre / texture' },
-  { name: 'MFCC Std', desc: 'Timbre variation' },
-  { name: 'Chroma Mean', desc: 'Average harmonic content' },
-  { name: 'Chroma Std', desc: 'Harmony variation' },
-  { name: 'Spectral Centroid', desc: 'Brightness of sound' },
-  { name: 'Spectral Rolloff', desc: 'Spectral shape' },
-  { name: 'Zero Crossing Rate', desc: 'Noisiness' },
-  { name: 'Spectral Bandwidth', desc: 'Spectral richness' }
-];
-
 export default function App() {
   const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const fileRef = useRef(null);
+  const [error, setError] = useState("");
 
-  /* =======================
-     API CALL
-  ======================= */
-  const analyze = async () => {
-    if (!file) return setError('Please select an audio file.');
+  /**
+   * Send the selected audio file to the backend for classification.
+   * Manages loading state and error handling.
+   */
+  const handleAnalyze = async () => {
+    if (!file) {
+      setError("Please select an audio file first.");
+      return;
+    }
+
     setLoading(true);
-    setError('');
+    setError("");
     setResult(null);
 
-    const fd = new FormData();
-    fd.append('audioFile', file);
-
     try {
-      const res = await axios.post('http://127.0.0.1:5000/analyze', fd);
-      setResult(res.data);
-    } catch {
-      setError('Backend error. Please check server.');
+      const data = await analyzeAudio(file);
+      setResult(data);
+    } catch (err) {
+      const message =
+        err.response?.data?.error ||
+        "Could not connect to the backend. Make sure the server is running.";
+      setError(message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  /* =======================
-     DOWNLOAD REPORT (CSV)
-  ======================= */
-  const downloadReport = () => {
-    if (!result) return;
-
-    let csv = `Identified Instrument,${result.instrument}\n\n`;
-    csv += `Instrument,Probability (%)\n`;
-
-    result.knn_probabilities.forEach(p => {
-      csv += `${p.name},${p.score}\n`;
-    });
-
-    csv += `\nFeature,Input Value,Database Average\n`;
-
-    features.forEach((f, i) => {
-      csv += `${f.name},${result.feature_vector[i]},${result.compared_vector[i]}\n`;
-    });
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'instrument_analysis_report.csv';
-    link.click();
-  };
-
-  /* =======================
-     DATA
-  ======================= */
-  const probabilities = useMemo(() => {
-    if (!result) return [];
-    return [...(result.knn_probabilities || [])]
-      .sort((a, b) => b.score - a.score);
-  }, [result]);
-
-  const barData = {
-    labels: probabilities.map(p => p.name),
-    datasets: [{
-      data: probabilities.map(p => p.score),
-      backgroundColor: '#5fcad8',
-      borderRadius: 6,
-      barThickness: 18
-    }]
-  };
-
-  const radarData = {
-    labels: features.map(f => f.name),
-    datasets: [
-      {
-        label: 'Input Audio',
-        data: result?.feature_vector || [],
-        borderColor: '#5fcad8',
-        backgroundColor: 'rgba(95,202,216,0.25)'
-      },
-      {
-        label: 'Database Avg',
-        data: result?.compared_vector || [],
-        borderColor: '#f1b25b',
-        backgroundColor: 'rgba(241,178,91,0.18)'
-      }
-    ]
-  };
-
-  const waveformData = {
-    labels: result?.waveform?.time || [],
-    datasets: [{
-      data: result?.waveform?.amplitude || [],
-      borderColor: '#5fcad8',
-      borderWidth: 1.5,
-      pointRadius: 0,
-      fill: true,
-      backgroundColor: 'rgba(95,202,216,0.08)'
-    }]
-  };
-
-  const waveformOptions = {
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { display: false },
-      y: {
-        ticks: { color: '#9aa4b2' },
-        grid: { color: 'rgba(255,255,255,0.06)' }
-      }
     }
   };
 
@@ -238,115 +94,59 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container maxWidth="md" sx={{ py: 6 }}>
+        <Header />
 
-        {/* HEADER */}
-        <Box textAlign="center" mb={5}>
-          <Typography variant="h3">Instrument Recognition</Typography>
-          <Typography color="text.secondary">
-            Explainable audio intelligence using spectral feature analysis
-          </Typography>
-        </Box>
+        <FileUpload
+          file={file}
+          onFileSelect={setFile}
+          onAnalyze={handleAnalyze}
+          onDownload={() => downloadCSVReport(result)}
+          loading={loading}
+          hasResult={!!result}
+        />
 
-        {/* UPLOAD */}
-        <Card sx={{ p: 3, mb: 4, textAlign: 'center' }}>
-          <input hidden ref={fileRef} type="file" accept=".wav,.mp3"
-            onChange={e => setFile(e.target.files[0])} />
-          <Box display="flex" justifyContent="center" gap={2} flexWrap="wrap">
-            <Button startIcon={<FileUploadIcon />}
-              onClick={() => fileRef.current.click()}>
-              Select Audio
-            </Button>
-            <Button variant="contained" startIcon={<AnalyticsIcon />}
-              disabled={!file || loading} onClick={analyze}>
-              Analyze
-            </Button>
-            {result && (
-              <Button variant="outlined" startIcon={<DescriptionIcon />}
-                onClick={downloadReport}>
-                Download Report
-              </Button>
-            )}
+        {/* Loading indicator */}
+        {loading && (
+          <Box display="flex" justifyContent="center" my={4}>
+            <CircularProgress color="primary" />
           </Box>
-          <Typography color="text.secondary" mt={1}>
-            {file?.name || 'Supported formats: WAV, MP3'}
-          </Typography>
-        </Card>
+        )}
 
-        {loading && <CircularProgress sx={{ display: 'block', mx: 'auto', my: 3 }} />}
-        {error && <Alert severity="error">{error}</Alert>}
+        {/* Error display */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+            {error}
+          </Alert>
+        )}
 
+        {/* Results section - renders only after successful analysis */}
         {result && (
-          <>
-            {/* IDENTIFIED */}
-            <Card sx={{ p: 4, mb: 4, textAlign: 'center' }}>
-              <Typography variant="h4">Identified Instrument</Typography>
-              <Typography variant="h2" color="primary.main" mt={2}>
-                {result.instrument}
-              </Typography>
-            </Card>
+          <Fade in timeout={500}>
+            <div>
+              <ResultCard
+                instrument={result.instrument}
+                confidence={result.confidence_score}
+              />
 
-            {/* PROBABILITY */}
-            <Card sx={{ p: 3, mb: 4 }}>
-              <Typography variant="h4" mb={2}>
-                Other Instrument Probability
-              </Typography>
-              <Bar data={barData} />
-            </Card>
+              <ProbabilityChart probabilities={result.knn_probabilities} />
 
-            {/* WAVEFORM */}
-            <Card sx={{ p: 3, mb: 4 }}>
-              <Typography variant="h4" mb={2}>
-                Audio Waveform
-              </Typography>
-              <Box sx={{ height: 220 }}>
-                <Line data={waveformData} options={waveformOptions} />
-              </Box>
-              <Typography color="text.secondary" mt={1}>
-                Raw time-domain signal representation of the input audio.
-              </Typography>
-            </Card>
+              <WaveformChart
+                time={result.waveform.time}
+                amplitude={result.waveform.amplitude}
+              />
 
-            {/* RADAR */}
-            <Card sx={{ p: 3, mb: 4 }}>
-              <Typography variant="h4" mb={2}>
-                Feature Fingerprint Comparison
-              </Typography>
-              <Radar data={radarData} />
-            </Card>
+              <RadarChart
+                featureVector={result.feature_vector}
+                comparedVector={result.compared_vector}
+                instrument={result.instrument}
+              />
 
-            {/* TABLE */}
-            <Card sx={{ p: 3 }}>
-              <Typography variant="h4" mb={2}>
-                Feature-Level Comparison
-              </Typography>
-              <TableContainer component={Paper}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Feature</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell align="right">Input</TableCell>
-                      <TableCell align="right">Database Avg</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {features.map((f, i) => (
-                      <TableRow key={f.name}>
-                        <TableCell>{f.name}</TableCell>
-                        <TableCell>{f.desc}</TableCell>
-                        <TableCell align="right" sx={{ color: 'primary.main' }}>
-                          {result.feature_vector[i].toFixed(4)}
-                        </TableCell>
-                        <TableCell align="right" sx={{ color: '#f1b25b' }}>
-                          {result.compared_vector[i].toFixed(4)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Card>
-          </>
+              <FeatureTable
+                featureVector={result.feature_vector}
+                comparedVector={result.compared_vector}
+              />
+            </div>
+          </Fade>
         )}
       </Container>
     </ThemeProvider>
