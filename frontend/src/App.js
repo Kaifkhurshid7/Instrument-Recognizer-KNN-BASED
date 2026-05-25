@@ -1,13 +1,8 @@
 /**
  * Instrument Recognizer - Main Application
  * ==========================================
- * Root component that orchestrates the analysis workflow:
- * 1. User uploads an audio file
- * 2. File is sent to Flask backend for spectral analysis
- * 3. Results are displayed with multiple explainability views
- *
- * Architecture: Thin orchestrator that delegates rendering
- * to focused child components.
+ * Documentation-style layout inspired by Music.AI.
+ * Clean dark theme with structured sections for input/output.
  */
 
 import React, { useState } from "react";
@@ -19,6 +14,7 @@ import {
   Fade,
   CircularProgress,
   Box,
+  Divider,
 } from "@mui/material";
 import {
   Chart as ChartJS,
@@ -44,7 +40,7 @@ import ProbabilityChart from "./components/charts/ProbabilityChart";
 import RadarChart from "./components/charts/RadarChart";
 import FeatureTable from "./components/FeatureTable";
 
-// Chart.js registration (required once at app level)
+// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -63,10 +59,6 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  /**
-   * Send the selected audio file to the backend for classification.
-   * Manages loading state and error handling.
-   */
   const handleAnalyze = async () => {
     if (!file) {
       setError("Please select an audio file first.");
@@ -93,7 +85,7 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="md" sx={{ py: 6 }}>
+      <Container maxWidth="lg" sx={{ py: 5 }}>
         <Header />
 
         <FileUpload
@@ -105,47 +97,68 @@ export default function App() {
           hasResult={!!result}
         />
 
-        {/* Loading indicator */}
+        {/* Loading */}
         {loading && (
-          <Box display="flex" justifyContent="center" my={4}>
-            <CircularProgress color="primary" />
+          <Box display="flex" justifyContent="center" my={5}>
+            <CircularProgress size={32} sx={{ color: "#3b82f6" }} />
           </Box>
         )}
 
-        {/* Error display */}
+        {/* Error */}
         {error && (
-          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+          <Alert
+            severity="error"
+            sx={{
+              mb: 3,
+              bgcolor: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(239,68,68,0.2)",
+              color: "#fca5a5",
+              borderRadius: 2,
+            }}
+          >
             {error}
           </Alert>
         )}
 
-        {/* Results section - renders only after successful analysis */}
+        {/* Results */}
         {result && (
-          <Fade in timeout={500}>
-            <div>
+          <Fade in timeout={400}>
+            <Box>
+              <Divider sx={{ mb: 4 }} />
+
               <ResultCard
                 instrument={result.instrument}
                 confidence={result.confidence_score}
               />
 
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                  gap: 3,
+                  mb: 3,
+                }}
+              >
+                <WaveformChart
+                  time={result.waveform.time}
+                  amplitude={result.waveform.amplitude}
+                />
+                <RadarChart
+                  featureVector={result.feature_vector}
+                  comparedVector={result.compared_vector}
+                  instrument={result.instrument}
+                />
+              </Box>
+
               <ProbabilityChart probabilities={result.knn_probabilities} />
 
-              <WaveformChart
-                time={result.waveform.time}
-                amplitude={result.waveform.amplitude}
-              />
-
-              <RadarChart
-                featureVector={result.feature_vector}
-                comparedVector={result.compared_vector}
-                instrument={result.instrument}
-              />
-
-              <FeatureTable
-                featureVector={result.feature_vector}
-                comparedVector={result.compared_vector}
-              />
-            </div>
+              <Box mt={3}>
+                <FeatureTable
+                  featureVector={result.feature_vector}
+                  comparedVector={result.compared_vector}
+                />
+              </Box>
+            </Box>
           </Fade>
         )}
       </Container>

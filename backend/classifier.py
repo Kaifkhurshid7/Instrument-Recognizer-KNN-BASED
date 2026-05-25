@@ -1,13 +1,8 @@
 """
-KNN Classifier Service
-----------------------
-Manages the lifecycle of the KNN model: loading the reference database,
-training the classifier, and running predictions.
+KNN instrument classifier.
 
-Architecture Note:
-  The classifier is trained once at server startup from a pre-built
-  reference database (pickle file). This avoids re-processing thousands
-  of audio files on every restart.
+Loads a pre-built reference database at startup, trains a KNN model
+with cosine distance, and exposes a predict() method for inference.
 """
 
 import pickle
@@ -25,7 +20,7 @@ from config import (
 
 
 class InstrumentClassifier:
-    """Encapsulates the KNN model, scaler, and reference data."""
+    """KNN-based instrument classifier with StandardScaler normalization."""
 
     def __init__(self):
         self.model = None
@@ -39,16 +34,12 @@ class InstrumentClassifier:
         return self._is_ready
 
     def load_and_train(self):
-        """
-        Load the reference database and train the KNN classifier.
-        Called once during server startup.
-        """
+        """Load reference database and fit the KNN model. Called once at startup."""
         print("[Classifier] Loading reference database...")
 
         with open(DATABASE_FILE, "rb") as f:
             self.reference_database = pickle.load(f)
 
-        # Build training matrices from stored fingerprints
         X, y = [], []
         self.class_names = sorted(self.reference_database.keys())
         class_map = {name: idx for idx, name in enumerate(self.class_names)}
@@ -62,11 +53,10 @@ class InstrumentClassifier:
         X = np.array(X)
         y = np.array(y)
 
-        # Normalize features so no single dimension dominates distance calc
+        # Normalize so no single feature dominates the distance calculation
         self.scaler = StandardScaler()
         X_scaled = self.scaler.fit_transform(X)
 
-        # Train KNN with cosine distance (works well for spectral fingerprints)
         self.model = KNeighborsClassifier(
             n_neighbors=KNN_NEIGHBORS,
             metric=KNN_METRIC,
@@ -75,25 +65,17 @@ class InstrumentClassifier:
         self.model.fit(X_scaled, y)
         self._is_ready = True
 
-        print(
-            f"[Classifier] Ready | Classes: {len(self.class_names)} | Samples: {len(y)}"
-        )
+        print(f"[Classifier] Ready | {len(self.class_names)} classes | {len(y)} samples")
 
     def predict(self, feature_vector):
         """
-        Classify a single feature vector.
+        Classify a feature vector and return prediction with probabilities.
 
-        Parameters
-        ----------
-        feature_vector : np.ndarray of shape (10,)
+        Args:
+            feature_vector: np.ndarray of shape (26,)
 
-        Returns
-        -------
-        dict with keys:
-            'instrument'    : str - predicted instrument name (title case)
-            'confidence'    : float - confidence percentage (0-100)
-            'probabilities' : list[dict] - all classes sorted by score
-            'average_vector': list[float] - database average for predicted class
+        Returns:
+            dict with instrument, confidence, probabilities, and average_vector.
         """
         scaled = self.scaler.transform(feature_vector.reshape(1, -1))
         proba = self.model.predict_proba(scaled)[0]
@@ -102,7 +84,6 @@ class InstrumentClassifier:
         instrument = self.class_names[best_idx]
         confidence = proba[best_idx] * 100
 
-        # Build sorted probability table for all instruments
         probability_table = sorted(
             [
                 {"name": self.class_names[i].title(), "score": round(p * 100, 2)}
@@ -116,7 +97,5 @@ class InstrumentClassifier:
             "instrument": instrument.title(),
             "confidence": round(confidence, 2),
             "probabilities": probability_table,
-            "average_vector": self.reference_database[instrument][
-                "average_vector"
-            ].tolist(),
+            "average_vector": self.reference_database[instrument]["average_vector"].tolist(),
         }

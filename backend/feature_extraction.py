@@ -1,30 +1,16 @@
 """
-Feature Extraction Module (Enhanced)
---------------------------------------
-Extracts a 26-dimensional spectral fingerprint from audio files.
-This module is shared between the API server and the database builder
-to ensure consistent feature computation.
+Spectral feature extraction for audio classification.
 
-Key improvement over the original 10-D vector:
-  - Individual MFCC coefficients (1-13 mean) capture distinct timbre bands
-  - Delta MFCCs capture temporal dynamics (attack, decay patterns)
-  - Additional spectral shape descriptors improve class separation
-
-Feature Vector Layout (26 dimensions):
-  [0-12]  MFCC 1-13 Mean       - Per-coefficient timbre profile
-  [13]    MFCC Delta Mean       - Temporal dynamics (attack/sustain)
-  [14]    Chroma Mean           - Harmonic content
-  [15]    Chroma Std            - Harmony variation
-  [16]    Spectral Centroid     - Brightness
-  [17]    Centroid Std          - Brightness variation
-  [18]    Spectral Rolloff      - High-frequency energy boundary
-  [19]    Rolloff Std           - Rolloff variation
-  [20]    Zero Crossing Rate    - Noisiness / percussiveness
-  [21]    ZCR Std               - Noisiness variation
-  [22]    Spectral Bandwidth    - Richness of sound
-  [23]    Bandwidth Std         - Richness variation
-  [24]    Spectral Flatness     - Tonal vs noisy (key for wind instruments)
-  [25]    RMS Energy Std        - Dynamic range / envelope shape
+Produces a 26-dimensional fingerprint vector per audio file:
+  [0-12]  MFCC 1-13 means (per-coefficient timbre profile)
+  [13]    MFCC delta mean (temporal dynamics)
+  [14-15] Chroma mean/std (harmonic content)
+  [16-17] Spectral centroid mean/std (brightness)
+  [18-19] Spectral rolloff mean/std (high-freq energy boundary)
+  [20-21] Zero crossing rate mean/std (noisiness)
+  [22-23] Spectral bandwidth mean/std (richness)
+  [24]    Spectral flatness (tonal vs noisy)
+  [25]    RMS energy std (dynamic range)
 """
 
 import numpy as np
@@ -41,36 +27,21 @@ from config import (
 
 def extract_features(file_path, include_waveform=False):
     """
-    Extract an enhanced 26-dimensional feature vector from an audio file.
+    Extract a 26-dimensional spectral feature vector from an audio file.
 
-    The vector captures:
-      - Timbre (individual MFCCs + delta)
-      - Harmony (chroma)
-      - Spectral shape (centroid, rolloff, bandwidth, flatness)
-      - Temporal dynamics (ZCR std, RMS std, MFCC delta)
+    Args:
+        file_path: Path to the audio file (WAV preferred).
+        include_waveform: If True, returns downsampled waveform for visualization.
 
-    Parameters
-    ----------
-    file_path : str
-        Path to the audio file (WAV format preferred).
-    include_waveform : bool
-        If True, also returns downsampled time/amplitude arrays for visualization.
-
-    Returns
-    -------
-    dict with keys:
-        'features'  : np.ndarray of shape (FEATURE_VECTOR_LENGTH,) or None on failure
-        'time'      : list[float] (only if include_waveform=True)
-        'amplitude' : list[float] (only if include_waveform=True)
+    Returns:
+        dict with 'features' (np.ndarray or None), and optionally 'time'/'amplitude'.
     """
     try:
-        # Load audio with consistent sample rate and duration cap
         y, sr = librosa.load(file_path, sr=SAMPLE_RATE, duration=MAX_DURATION_SECONDS)
 
-        # Larger hop_length to reduce memory usage on long files
+        # hop=1024 reduces spectrogram matrix size (memory optimization)
         hop = 1024
 
-        # --- Core spectral features ---
         mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=MFCC_COEFFICIENTS, hop_length=hop)
         mfcc_delta = librosa.feature.delta(mfccs)
         chroma = librosa.feature.chroma_stft(y=y, sr=sr, hop_length=hop, n_fft=2048)
@@ -81,34 +52,16 @@ def extract_features(file_path, include_waveform=False):
         flatness = librosa.feature.spectral_flatness(y=y, hop_length=hop)
         rms = librosa.feature.rms(y=y, hop_length=hop)
 
-        # --- Build the 26-dimensional fingerprint ---
         feature_vector = np.concatenate([
-            # Individual MFCC means (13 values) - captures distinct timbre bands
-            np.mean(mfccs, axis=1),
-
-            # MFCC delta mean - captures temporal dynamics
-            [np.mean(mfcc_delta)],
-
-            # Chroma (harmonic content)
+            np.mean(mfccs, axis=1),              # 13 MFCC means
+            [np.mean(mfcc_delta)],               # temporal dynamics
             [np.mean(chroma), np.std(chroma)],
-
-            # Spectral centroid (brightness)
             [np.mean(centroid), np.std(centroid)],
-
-            # Spectral rolloff (high-freq energy boundary)
             [np.mean(rolloff), np.std(rolloff)],
-
-            # Zero crossing rate (noisiness / percussiveness)
             [np.mean(zcr), np.std(zcr)],
-
-            # Spectral bandwidth (richness)
             [np.mean(bandwidth), np.std(bandwidth)],
-
-            # Spectral flatness (tonal vs noisy - great for wind vs string)
-            [np.mean(flatness)],
-
-            # RMS energy std (dynamic range / envelope shape)
-            [np.std(rms)],
+            [np.mean(flatness)],                 # tonal vs noisy
+            [np.std(rms)],                       # dynamic range
         ])
 
         if feature_vector.shape[0] != FEATURE_VECTOR_LENGTH:
@@ -118,7 +71,6 @@ def extract_features(file_path, include_waveform=False):
 
         result = {"features": feature_vector}
 
-        # Optional waveform data for frontend visualization
         if include_waveform:
             num_samples = WAVEFORM_DISPLAY_SAMPLES
             result["time"] = np.linspace(0, len(y) / sr, num=num_samples).tolist()
@@ -128,5 +80,5 @@ def extract_features(file_path, include_waveform=False):
         return result
 
     except Exception as e:
-        print(f"[Feature Extraction] Error processing {file_path}: {e}")
+        print(f"[Feature Extraction] Error: {file_path} — {e}")
         return {"features": None}

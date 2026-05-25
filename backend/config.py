@@ -1,13 +1,10 @@
 """
-Application Configuration
--------------------------
-Centralized settings for the Flask backend. Values can be overridden
-via environment variables for deployment flexibility.
+Centralized application configuration.
+Override via environment variables for deployment.
 """
 
 import os
 
-# Base directory (backend/)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Paths
@@ -26,7 +23,7 @@ KNN_METRIC = "cosine"
 KNN_WEIGHTS = "distance"
 
 # Feature Extraction
-FEATURE_VECTOR_LENGTH = 26  # Enhanced from 10 → 26 dimensions
+FEATURE_VECTOR_LENGTH = 26
 MFCC_COEFFICIENTS = 13
 
 # Server
