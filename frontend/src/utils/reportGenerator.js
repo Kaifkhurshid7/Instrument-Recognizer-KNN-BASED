@@ -1,14 +1,8 @@
-/**
- * Report Generator Utility
- * -------------------------
- * Creates downloadable CSV reports from analysis results.
- */
-
 import { FEATURE_LABELS } from "../config/constants";
 
 /**
- * Generate and trigger download of a CSV analysis report.
- * @param {Object} result - The analysis result from the API
+ * Generate and download a CSV report from analysis results.
+ * @param {Object} result - API response from /analyze
  */
 export function downloadCSVReport(result) {
   if (!result) return;
