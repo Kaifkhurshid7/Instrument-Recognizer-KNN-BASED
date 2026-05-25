@@ -1,10 +1,3 @@
-/**
- * Instrument Recognizer - Main Application
- * ==========================================
- * Documentation-style layout inspired by Music.AI.
- * Clean dark theme with structured sections for input/output.
- */
-
 import React, { useState } from "react";
 import {
   ThemeProvider,
@@ -40,7 +33,6 @@ import ProbabilityChart from "./components/charts/ProbabilityChart";
 import RadarChart from "./components/charts/RadarChart";
 import FeatureTable from "./components/FeatureTable";
 
-// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -97,14 +89,12 @@ export default function App() {
           hasResult={!!result}
         />
 
-        {/* Loading */}
         {loading && (
           <Box display="flex" justifyContent="center" my={5}>
             <CircularProgress size={32} sx={{ color: "#3b82f6" }} />
           </Box>
         )}
 
-        {/* Error */}
         {error && (
           <Alert
             severity="error"
@@ -120,7 +110,6 @@ export default function App() {
           </Alert>
         )}
 
-        {/* Results */}
         {result && (
           <Fade in timeout={400}>
             <Box>

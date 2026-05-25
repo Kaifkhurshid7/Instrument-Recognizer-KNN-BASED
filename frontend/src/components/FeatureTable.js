@@ -1,9 +1,3 @@
-/**
- * Feature Table Component
- * ------------------------
- * Clean documentation-style table showing all 26 features.
- */
-
 import React from "react";
 import {
   Card,
@@ -46,16 +40,10 @@ export default function FeatureTable({ featureVector, comparedVector }) {
               <TableCell sx={{ color: "#737373", fontWeight: 600, fontSize: "0.75rem" }}>
                 DESCRIPTION
               </TableCell>
-              <TableCell
-                align="right"
-                sx={{ color: "#3b82f6", fontWeight: 600, fontSize: "0.75rem" }}
-              >
+              <TableCell align="right" sx={{ color: "#3b82f6", fontWeight: 600, fontSize: "0.75rem" }}>
                 INPUT
               </TableCell>
-              <TableCell
-                align="right"
-                sx={{ color: "#f59e0b", fontWeight: 600, fontSize: "0.75rem" }}
-              >
+              <TableCell align="right" sx={{ color: "#f59e0b", fontWeight: 600, fontSize: "0.75rem" }}>
                 DB AVERAGE
               </TableCell>
             </TableRow>
@@ -75,16 +63,10 @@ export default function FeatureTable({ featureVector, comparedVector }) {
                 <TableCell sx={{ color: "#737373", fontSize: "0.8rem" }}>
                   {feature.description}
                 </TableCell>
-                <TableCell
-                  align="right"
-                  sx={{ color: "#3b82f6", fontFamily: "monospace", fontSize: "0.8rem" }}
-                >
+                <TableCell align="right" sx={{ color: "#3b82f6", fontFamily: "monospace", fontSize: "0.8rem" }}>
                   {featureVector[i]?.toFixed(4)}
                 </TableCell>
-                <TableCell
-                  align="right"
-                  sx={{ color: "#f59e0b", fontFamily: "monospace", fontSize: "0.8rem" }}
-                >
+                <TableCell align="right" sx={{ color: "#f59e0b", fontFamily: "monospace", fontSize: "0.8rem" }}>
                   {comparedVector[i]?.toFixed(4)}
                 </TableCell>
               </TableRow>
