@@ -1,10 +1,3 @@
-/**
- * Application Theme Configuration
- * --------------------------------
- * Dark theme inspired by Music.AI's professional documentation style.
- * Clean blacks, minimal borders, and accent blue for CTAs.
- */
-
 import { createTheme } from "@mui/material";
 
 const theme = createTheme({

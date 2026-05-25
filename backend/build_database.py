@@ -1,14 +1,11 @@
 """
-Reference Database Builder
----------------------------
-Processes the IRMAS training dataset to extract spectral fingerprints
-for each instrument class. Outputs a pickle file used by the classifier.
+Build the reference fingerprint database from IRMAS training data.
 
 Usage:
     python build_database.py
 
-The script scans IRMAS-TrainingData/ for instrument folders, extracts
-features from each WAV file, and stores them in reference_database.pkl.
+Scans IRMAS-TrainingData/ for instrument folders, extracts features
+from each WAV file, and saves the result to reference_database.pkl.
 """
 
 import os
@@ -21,18 +18,14 @@ from feature_extraction import extract_features
 
 
 def build_database():
-    """
-    Iterate through all instrument folders, extract features from each
-    audio sample, and save the compiled database to disk.
-    """
+    """Process all instrument folders and compile the reference database."""
     database = {}
     start_time = time.time()
 
     print("[Database Builder] Scanning IRMAS dataset...")
 
     if not os.path.exists(DATASET_PATH):
-        print(f"[Error] Dataset not found at: {DATASET_PATH}")
-        print("  Download IRMAS-TrainingData and place it in the backend/ folder.")
+        print(f"[Error] Dataset not found: {DATASET_PATH}")
         return
 
     instrument_folders = sorted(
@@ -54,11 +47,10 @@ def build_database():
             if result["features"] is not None:
                 fingerprints.append(result["features"])
 
-            # Progress indicator
             if idx % 50 == 0 or idx == len(wav_files):
                 print(f"    {idx}/{len(wav_files)} processed", end="\r")
 
-        print(f"    Collected {len(fingerprints)} valid fingerprints")
+        print(f"    Collected {len(fingerprints)} fingerprints")
 
         if fingerprints:
             database[instrument] = {
@@ -66,7 +58,6 @@ def build_database():
                 "average_vector": np.mean(fingerprints, axis=0),
             }
 
-    # --- Save ---
     if not database:
         print("\n[Error] No data collected. Check dataset structure.")
         return
@@ -77,11 +68,8 @@ def build_database():
     elapsed = time.time() - start_time
     total_samples = sum(len(d["fingerprints"]) for d in database.values())
 
-    print(f"\n[Database Builder] Complete!")
-    print(f"  Classes: {len(database)}")
-    print(f"  Total samples: {total_samples}")
-    print(f"  Saved to: {DATABASE_FILE}")
-    print(f"  Time: {elapsed:.1f}s")
+    print(f"\n[Done] {len(database)} classes | {total_samples} samples | {elapsed:.1f}s")
+    print(f"  Saved: {DATABASE_FILE}")
 
 
 if __name__ == "__main__":

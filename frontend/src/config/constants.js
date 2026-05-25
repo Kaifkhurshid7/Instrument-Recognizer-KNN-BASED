@@ -1,15 +1,8 @@
-/**
- * Application Constants
- * ---------------------
- * Centralized configuration values used across the frontend.
- */
-
-// Backend API base URL - change for production deployment
+// Backend API URL
 export const API_BASE_URL =
   process.env.REACT_APP_API_URL || "http://127.0.0.1:5000";
 
 // Feature labels matching the 26-D backend vector
-// Grouped for display: MFCCs shown as a summary, then individual spectral features
 export const FEATURE_LABELS = [
   { name: "MFCC 1", description: "Energy / loudness" },
   { name: "MFCC 2", description: "Spectral slope" },
@@ -39,7 +32,7 @@ export const FEATURE_LABELS = [
   { name: "RMS Energy Std", description: "Dynamic range" },
 ];
 
-// Subset of features for the radar chart (too many makes it unreadable)
+// Subset for radar chart (full 26 labels would be unreadable)
 export const RADAR_FEATURES = [
   { index: 0, name: "MFCC 1 (Energy)" },
   { index: 1, name: "MFCC 2 (Slope)" },
@@ -55,17 +48,15 @@ export const RADAR_FEATURES = [
   { index: 25, name: "Dynamic Range" },
 ];
 
-// Chart color palette
+// Chart colors
 export const COLORS = {
-  primary: "#6ee7b7",
-  primaryAlpha: "rgba(110, 231, 183, 0.2)",
-  secondary: "#818cf8",
-  secondaryAlpha: "rgba(129, 140, 248, 0.15)",
-  accent: "#fbbf24",
-  accentAlpha: "rgba(251, 191, 36, 0.15)",
-  grid: "rgba(148, 163, 184, 0.06)",
-  text: "#94a3b8",
+  primary: "#3b82f6",
+  primaryAlpha: "rgba(59, 130, 246, 0.12)",
+  accent: "#f59e0b",
+  accentAlpha: "rgba(245, 158, 11, 0.08)",
+  grid: "rgba(255, 255, 255, 0.03)",
+  text: "#a3a3a3",
 };
 
-// Accepted audio file formats
+// Accepted upload formats
 export const ACCEPTED_FORMATS = ".wav,.mp3,.ogg,.flac,.m4a";
