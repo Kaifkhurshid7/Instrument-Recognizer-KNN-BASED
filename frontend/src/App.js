@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   ThemeProvider,
   CssBaseline,
@@ -25,6 +25,8 @@ import {
 import theme from "./config/theme";
 import { analyzeAudio } from "./services/api";
 import { downloadCSVReport } from "./utils/reportGenerator";
+
+import BackgroundDecor from "./components/BackgroundDecor";
 import Header from "./components/Header";
 import FileUpload from "./components/FileUpload";
 import ResultCard from "./components/ResultCard";
@@ -32,6 +34,10 @@ import WaveformChart from "./components/charts/WaveformChart";
 import ProbabilityChart from "./components/charts/ProbabilityChart";
 import RadarChart from "./components/charts/RadarChart";
 import FeatureTable from "./components/FeatureTable";
+import FeaturesSection from "./components/FeaturesSection";
+import HowItWorks from "./components/HowItWorks";
+import ApiDocs from "./components/ApiDocs";
+import Footer from "./components/Footer";
 
 ChartJS.register(
   CategoryScale,
@@ -50,6 +56,20 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Section refs for nav scroll
+  const howItWorksRef = useRef(null);
+  const capabilitiesRef = useRef(null);
+  const apiDocsRef = useRef(null);
+
+  const handleScrollTo = (section) => {
+    const refs = {
+      howItWorks: howItWorksRef,
+      capabilities: capabilitiesRef,
+      apiDocs: apiDocsRef,
+    };
+    refs[section]?.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const handleAnalyze = async () => {
     if (!file) {
@@ -77,9 +97,12 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="lg" sx={{ py: 5 }}>
-        <Header />
+      <BackgroundDecor />
 
+      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 }, position: "relative", zIndex: 1 }}>
+        <Header onScrollTo={handleScrollTo} />
+
+        {/* Upload section — first after hero */}
         <FileUpload
           file={file}
           onFileSelect={setFile}
@@ -89,12 +112,14 @@ export default function App() {
           hasResult={!!result}
         />
 
+        {/* Loading */}
         {loading && (
           <Box display="flex" justifyContent="center" my={5}>
             <CircularProgress size={32} sx={{ color: "#3b82f6" }} />
           </Box>
         )}
 
+        {/* Error */}
         {error && (
           <Alert
             severity="error"
@@ -110,9 +135,10 @@ export default function App() {
           </Alert>
         )}
 
+        {/* Results */}
         {result && (
           <Fade in timeout={400}>
-            <Box>
+            <Box sx={{ mb: 6 }}>
               <Divider sx={{ mb: 4 }} />
 
               <ResultCard
@@ -150,6 +176,23 @@ export default function App() {
             </Box>
           </Fade>
         )}
+
+        {/* How it Works */}
+        <Box ref={howItWorksRef} sx={{ scrollMarginTop: "2rem" }}>
+          <HowItWorks />
+        </Box>
+
+        {/* Capabilities */}
+        <Box ref={capabilitiesRef} sx={{ scrollMarginTop: "2rem" }}>
+          <FeaturesSection />
+        </Box>
+
+        {/* API Docs */}
+        <Box ref={apiDocsRef} sx={{ scrollMarginTop: "2rem" }}>
+          <ApiDocs />
+        </Box>
+
+        <Footer />
       </Container>
     </ThemeProvider>
   );

@@ -1,95 +1,29 @@
 import React from "react";
 import { Box } from "@mui/material";
 
-// Floating music-themed SVG icons rendered as background decoration
-const musicIcons = [
-  // Musical notes
-  { icon: "♪", top: "5%", left: "3%", size: 48, opacity: 0.04, rotate: -15 },
-  { icon: "♫", top: "12%", right: "5%", size: 64, opacity: 0.05, rotate: 10 },
-  { icon: "♩", top: "25%", left: "8%", size: 36, opacity: 0.03, rotate: 20 },
-  { icon: "♬", top: "40%", right: "3%", size: 52, opacity: 0.04, rotate: -8 },
-  { icon: "♪", top: "55%", left: "2%", size: 44, opacity: 0.03, rotate: 12 },
-  { icon: "♫", top: "70%", right: "7%", size: 56, opacity: 0.04, rotate: -20 },
-  { icon: "♩", top: "82%", left: "6%", size: 40, opacity: 0.03, rotate: 5 },
-  { icon: "♬", top: "90%", right: "4%", size: 48, opacity: 0.04, rotate: -12 },
-  // Extra scattered
-  { icon: "♪", top: "18%", left: "85%", size: 32, opacity: 0.03, rotate: 25 },
-  { icon: "♫", top: "35%", left: "92%", size: 42, opacity: 0.03, rotate: -5 },
-  { icon: "♩", top: "48%", left: "5%", size: 28, opacity: 0.02, rotate: 30 },
-  { icon: "♬", top: "65%", left: "90%", size: 38, opacity: 0.03, rotate: -18 },
-];
-
-// Waveform-like decorative lines
-function WaveformLine({ top, opacity = 0.04 }) {
-  return (
-    <Box
-      sx={{
-        position: "absolute",
-        top,
-        left: 0,
-        right: 0,
-        height: "60px",
-        opacity,
-        overflow: "hidden",
-        pointerEvents: "none",
-      }}
-    >
-      <svg width="100%" height="60" preserveAspectRatio="none" viewBox="0 0 1200 60">
-        <path
-          d="M0,30 Q50,10 100,30 T200,30 T300,30 T400,30 T500,30 T600,30 T700,30 T800,30 T900,30 T1000,30 T1100,30 T1200,30"
-          fill="none"
-          stroke="#3b82f6"
-          strokeWidth="1.5"
-        />
-        <path
-          d="M0,30 Q75,5 150,30 T300,30 T450,30 T600,30 T750,30 T900,30 T1050,30 T1200,30"
-          fill="none"
-          stroke="#6366f1"
-          strokeWidth="1"
-        />
-      </svg>
-    </Box>
-  );
-}
-
-// Circular equalizer-style rings
-function EqRing({ top, left, size = 120, opacity = 0.03 }) {
-  return (
-    <Box
-      sx={{
-        position: "absolute",
-        top,
-        left,
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        border: "1px solid #3b82f6",
-        opacity,
-        pointerEvents: "none",
-      }}
-    />
-  );
-}
-
+// SVG music notes and waveform decorations rendered as absolute-positioned background elements
 export default function BackgroundDecor() {
   return (
     <Box
       sx={{
         position: "fixed",
-        inset: 0,
-        overflow: "hidden",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
         pointerEvents: "none",
         zIndex: 0,
+        overflow: "hidden",
       }}
     >
-      {/* Gradient orbs */}
+      {/* Gradient mesh background */}
       <Box
         sx={{
           position: "absolute",
-          top: "-10%",
-          right: "-5%",
-          width: 500,
-          height: 500,
+          top: "-20%",
+          right: "-10%",
+          width: 600,
+          height: 600,
           borderRadius: "50%",
           background: "radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)",
         }}
@@ -99,54 +33,124 @@ export default function BackgroundDecor() {
           position: "absolute",
           bottom: "-10%",
           left: "-5%",
-          width: 600,
-          height: 600,
+          width: 500,
+          height: 500,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(139,92,246,0.04) 0%, transparent 70%)",
         }}
       />
+
+      {/* Ruler / grid lines */}
+      <svg
+        width="100%"
+        height="100%"
+        style={{ position: "absolute", top: 0, left: 0, opacity: 0.03 }}
+      >
+        {Array.from({ length: 20 }).map((_, i) => (
+          <line
+            key={`h-${i}`}
+            x1="0"
+            y1={`${i * 5}%`}
+            x2="100%"
+            y2={`${i * 5}%`}
+            stroke="#fff"
+            strokeWidth="0.5"
+          />
+        ))}
+        {Array.from({ length: 30 }).map((_, i) => (
+          <line
+            key={`v-${i}`}
+            x1={`${i * 3.33}%`}
+            y1="0"
+            x2={`${i * 3.33}%`}
+            y2="100%"
+            stroke="#fff"
+            strokeWidth="0.5"
+          />
+        ))}
+      </svg>
+
+      {/* Floating music notes */}
+      <svg
+        width="100%"
+        height="100%"
+        style={{ position: "absolute", top: 0, left: 0, opacity: 0.04 }}
+      >
+        {/* Treble clef shape (simplified) */}
+        <text x="5%" y="15%" fontSize="80" fill="#3b82f6" fontFamily="serif">♪</text>
+        <text x="88%" y="25%" fontSize="60" fill="#8b5cf6" fontFamily="serif">♫</text>
+        <text x="75%" y="70%" fontSize="90" fill="#3b82f6" fontFamily="serif">♩</text>
+        <text x="12%" y="80%" fontSize="50" fill="#8b5cf6" fontFamily="serif">♬</text>
+        <text x="92%" y="85%" fontSize="70" fill="#3b82f6" fontFamily="serif">♪</text>
+        <text x="45%" y="5%" fontSize="40" fill="#6366f1" fontFamily="serif">♫</text>
+
+        {/* Waveform sine wave decoration */}
+        <path
+          d="M0,300 Q50,250 100,300 T200,300 T300,300 T400,300 T500,300 T600,300 T700,300 T800,300 T900,300 T1000,300 T1100,300 T1200,300 T1300,300 T1400,300"
+          fill="none"
+          stroke="#3b82f6"
+          strokeWidth="1"
+          opacity="0.3"
+        />
+        <path
+          d="M0,600 Q80,550 160,600 T320,600 T480,600 T640,600 T800,600 T960,600 T1120,600 T1280,600 T1440,600"
+          fill="none"
+          stroke="#8b5cf6"
+          strokeWidth="0.8"
+          opacity="0.2"
+        />
+      </svg>
+
+      {/* Frequency spectrum bars (left edge) */}
       <Box
         sx={{
           position: "absolute",
-          top: "40%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 800,
-          height: 400,
-          borderRadius: "50%",
-          background: "radial-gradient(ellipse, rgba(59,130,246,0.03) 0%, transparent 60%)",
+          left: 0,
+          top: "30%",
+          display: "flex",
+          flexDirection: "column",
+          gap: "3px",
+          opacity: 0.06,
         }}
-      />
+      >
+        {[40, 65, 30, 80, 55, 45, 70, 35, 60, 50, 75, 25, 55, 40, 68].map((w, i) => (
+          <Box
+            key={i}
+            sx={{
+              width: w,
+              height: 3,
+              bgcolor: "#3b82f6",
+              borderRadius: 1,
+            }}
+          />
+        ))}
+      </Box>
 
-      {/* Floating music icons */}
-      {musicIcons.map((item, i) => (
-        <Box
-          key={i}
-          sx={{
-            position: "absolute",
-            top: item.top,
-            left: item.left,
-            right: item.right,
-            fontSize: item.size,
-            opacity: item.opacity,
-            transform: `rotate(${item.rotate}deg)`,
-            color: "#3b82f6",
-            fontFamily: "serif",
-            userSelect: "none",
-          }}
-        >
-          {item.icon}
-        </Box>
-      ))}
-
-      {/* Waveform lines */}
-      <WaveformLine top="15%" opacity={0.03} />
-      <WaveformLine top="75%" opacity={0.025} />
-
-      {/* EQ rings */}
-      <EqRing top="20%" left="80%" size={160} opacity={0.025} />
-      <EqRing top="60%" left="5%" size={120} opacity={0.02} />
-      <EqRing top="45%" left="70%" size={80} opacity={0.03} />
+      {/* Frequency spectrum bars (right edge) */}
+      <Box
+        sx={{
+          position: "absolute",
+          right: 0,
+          top: "50%",
+          display: "flex",
+          flexDirection: "column",
+          gap: "3px",
+          opacity: 0.05,
+          alignItems: "flex-end",
+        }}
+      >
+        {[50, 35, 70, 45, 60, 30, 75, 55, 40, 65, 50, 80, 35].map((w, i) => (
+          <Box
+            key={i}
+            sx={{
+              width: w,
+              height: 3,
+              bgcolor: "#8b5cf6",
+              borderRadius: 1,
+            }}
+          />
+        ))}
+      </Box>
     </Box>
   );
 }
