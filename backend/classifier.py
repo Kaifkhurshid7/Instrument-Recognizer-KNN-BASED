@@ -15,7 +15,13 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 
-from config import DATABASE_FILE, KNN_NEIGHBORS, KNN_METRIC, KNN_WEIGHTS
+from config import (
+    DATABASE_FILE,
+    KNN_NEIGHBORS,
+    KNN_METRIC,
+    KNN_WEIGHTS,
+    FEATURE_VECTOR_LENGTH,
+)
 
 
 class InstrumentClassifier:
@@ -49,7 +55,7 @@ class InstrumentClassifier:
 
         for instrument, data in self.reference_database.items():
             for vector in data["fingerprints"]:
-                if len(vector) == 10:
+                if len(vector) == FEATURE_VECTOR_LENGTH:
                     X.append(vector)
                     y.append(class_map[instrument])
 

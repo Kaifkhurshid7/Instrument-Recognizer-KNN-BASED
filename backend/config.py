@@ -26,7 +26,7 @@ KNN_METRIC = "cosine"
 KNN_WEIGHTS = "distance"
 
 # Feature Extraction
-FEATURE_VECTOR_LENGTH = 10
+FEATURE_VECTOR_LENGTH = 26  # Enhanced from 10 → 26 dimensions
 MFCC_COEFFICIENTS = 13
 
 # Server

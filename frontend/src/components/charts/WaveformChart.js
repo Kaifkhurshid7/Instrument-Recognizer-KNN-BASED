@@ -1,14 +1,12 @@
 /**
  * Waveform Chart Component
  * -------------------------
- * Renders the time-domain audio signal as a line chart.
- * Shows the raw amplitude over time for visual inspection.
+ * Renders the time-domain audio signal. Clean minimal style.
  */
 
 import React from "react";
 import { Card, Typography, Box } from "@mui/material";
 import { Line } from "react-chartjs-2";
-import { COLORS } from "../../config/constants";
 
 export default function WaveformChart({ time, amplitude }) {
   const data = {
@@ -16,11 +14,11 @@ export default function WaveformChart({ time, amplitude }) {
     datasets: [
       {
         data: amplitude,
-        borderColor: COLORS.primary,
-        borderWidth: 1.5,
+        borderColor: "#3b82f6",
+        borderWidth: 1,
         pointRadius: 0,
         fill: true,
-        backgroundColor: COLORS.primaryAlpha,
+        backgroundColor: "rgba(59, 130, 246, 0.06)",
         tension: 0.1,
       },
     ],
@@ -31,12 +29,10 @@ export default function WaveformChart({ time, amplitude }) {
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
-      x: {
-        display: false,
-      },
+      x: { display: false },
       y: {
-        ticks: { color: COLORS.text, font: { size: 10 } },
-        grid: { color: COLORS.grid },
+        ticks: { color: "#525252", font: { size: 10 } },
+        grid: { color: "rgba(255,255,255,0.03)" },
         border: { display: false },
       },
     },
@@ -44,16 +40,18 @@ export default function WaveformChart({ time, amplitude }) {
   };
 
   return (
-    <Card sx={{ p: 3, mb: 4 }}>
-      <Typography variant="h6" mb={2}>
-        Audio Waveform
-      </Typography>
-      <Box sx={{ height: 200 }}>
+    <Card sx={{ p: 3, mb: 3 }}>
+      <Box mb={2}>
+        <Typography variant="h5" sx={{ color: "#f5f5f5" }}>
+          Audio Waveform
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 0.5 }}>
+          Time-domain signal of the input audio
+        </Typography>
+      </Box>
+      <Box sx={{ height: 180 }}>
         <Line data={data} options={options} />
       </Box>
-      <Typography variant="caption" color="text.secondary" mt={1} display="block">
-        Time-domain signal representation of the input audio
-      </Typography>
     </Card>
   );
 }

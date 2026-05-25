@@ -1,55 +1,63 @@
 /**
  * Result Card Component
  * ---------------------
- * Displays the primary classification result: instrument name
- * and confidence score with visual emphasis.
+ * Displays the primary classification result in a clean,
+ * documentation-style output section.
  */
 
 import React from "react";
-import { Card, Typography, Box, LinearProgress } from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import { Card, Typography, Box, LinearProgress, Grid } from "@mui/material";
 
 export default function ResultCard({ instrument, confidence }) {
-  // Color the confidence bar based on score
   const getConfidenceColor = (score) => {
-    if (score >= 80) return "primary";
+    if (score >= 80) return "success";
     if (score >= 50) return "warning";
     return "error";
   };
 
   return (
-    <Card sx={{ p: 4, mb: 4, textAlign: "center" }}>
-      <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={1}>
-        <CheckCircleIcon sx={{ color: "primary.main" }} />
-        <Typography variant="h6" color="text.secondary">
-          Identified Instrument
-        </Typography>
-      </Box>
-
-      <Typography
-        variant="h3"
-        color="primary.main"
-        sx={{ my: 2, fontWeight: 700 }}
-      >
-        {instrument}
+    <Box mb={4}>
+      <Typography variant="h6" sx={{ color: "#10b981", mb: 1.5, fontSize: "0.75rem" }}>
+        OUTPUT
       </Typography>
 
-      <Box sx={{ maxWidth: 300, mx: "auto", mt: 2 }}>
-        <Box display="flex" justifyContent="space-between" mb={0.5}>
-          <Typography variant="caption" color="text.secondary">
-            Confidence
-          </Typography>
-          <Typography variant="caption" fontWeight={600}>
-            {confidence}%
-          </Typography>
-        </Box>
-        <LinearProgress
-          variant="determinate"
-          value={confidence}
-          color={getConfidenceColor(confidence)}
-          sx={{ height: 8, borderRadius: 4 }}
-        />
-      </Box>
-    </Card>
+      <Grid container spacing={2}>
+        {/* Instrument result */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ p: 3, height: "100%" }}>
+            <Typography variant="caption" sx={{ color: "#737373" }}>
+              Identified Instrument
+            </Typography>
+            <Typography
+              variant="h4"
+              sx={{ color: "#f5f5f5", mt: 1, fontWeight: 700 }}
+            >
+              {instrument}
+            </Typography>
+          </Card>
+        </Grid>
+
+        {/* Confidence */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ p: 3, height: "100%" }}>
+            <Typography variant="caption" sx={{ color: "#737373" }}>
+              Confidence Score
+            </Typography>
+            <Typography
+              variant="h4"
+              sx={{ color: "#f5f5f5", mt: 1, fontWeight: 700 }}
+            >
+              {confidence}%
+            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={confidence}
+              color={getConfidenceColor(confidence)}
+              sx={{ mt: 1.5, height: 6, borderRadius: 3 }}
+            />
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
   );
 }
