@@ -1,21 +1,14 @@
-/**
- * API Service Layer
- * -----------------
- * Handles all communication with the Flask backend.
- * Separates network logic from UI components.
- */
-
 import axios from "axios";
 import { API_BASE_URL } from "../config/constants";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 60000, // Audio processing can take time
+  timeout: 60000,
 });
 
 /**
  * Upload an audio file for instrument classification.
- * @param {File} audioFile - The audio file to analyze
+ * @param {File} audioFile
  * @returns {Promise<Object>} Classification results
  */
 export async function analyzeAudio(audioFile) {
@@ -30,8 +23,8 @@ export async function analyzeAudio(audioFile) {
 }
 
 /**
- * Check if the backend server is running and model is ready.
- * @returns {Promise<Object>} Health status
+ * Check backend health status.
+ * @returns {Promise<Object>}
  */
 export async function checkHealth() {
   const response = await apiClient.get("/health");
