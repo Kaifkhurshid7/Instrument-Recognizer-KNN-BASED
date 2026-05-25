@@ -15,7 +15,7 @@ Unlike black-box deep learning models, this project focuses on **explainable AI*
 
 ### Key Features
 
-- **10-Dimensional Spectral Analysis** — Extracts MFCCs, Chroma, Spectral Centroid, Rolloff, ZCR, and Bandwidth
+- **26-Dimensional Spectral Analysis** — Extracts 13 MFCCs, Delta, Chroma, Spectral Centroid, Rolloff, ZCR, Bandwidth, Flatness, and RMS
 - **Explainable Results** — Radar chart comparing input fingerprint vs. database average
 - **Probability Distribution** — See how the model scored all instrument classes
 - **Waveform Visualization** — Raw time-domain signal display
@@ -25,6 +25,42 @@ Unlike black-box deep learning models, this project focuses on **explainable AI*
 ### Supported Instruments (11 Classes)
 
 Acoustic Guitar · Cello · Clarinet · Electric Guitar · Flute · Human Voice · Organ · Piano · Saxophone · Trumpet · Violin
+
+---
+
+## Model Performance
+
+Evaluated using **5-Fold Stratified Cross-Validation** on 3724 samples across 11 classes.
+
+### Final Model (K=3, Cosine Distance, Distance-Weighted)
+
+| Metric | Score |
+|--------|-------|
+| **Accuracy** | 61.90% (±0.92%) |
+| **Precision** | 62.05% |
+| **Recall** | 61.90% |
+| **F1 Score** | 61.73% |
+
+### K-Value Tuning Results
+
+| K | Accuracy |
+|---|----------|
+| 3 | **61.90%** |
+| 5 | 60.69% |
+| 7 | 59.18% |
+| 9 | 57.04% |
+| 11 | 56.34% |
+| 15 | 55.10% |
+| 21 | 53.36% |
+
+K=3 was selected as the optimal value — smaller K captures local structure better for spectral fingerprints where similar instruments cluster tightly.
+
+### Reproduce Results
+
+```bash
+cd backend
+python evaluate.py
+```
 
 ---
 
@@ -42,21 +78,21 @@ Acoustic Guitar · Cello · Clarinet · Electric Guitar · Flute · Human Voice 
                                                   ┌──────────────────────┐
                                                   │  KNN Classifier      │
                                                   │  (Cosine Distance)   │
-                                                  │  K=7, Weighted       │
+                                                  │  K=3, Weighted       │
                                                   └──────────────────────┘
                                                            │
                                                            ▼
                                                   ┌──────────────────────┐
                                                   │  Reference Database  │
-                                                  │  (3700+ fingerprints)│
+                                                  │  (3724 fingerprints) │
                                                   └──────────────────────┘
 ```
 
 ### How Classification Works
 
-1. **Feature Extraction** — Audio is loaded at 22050 Hz and analyzed to produce a 10-dimensional vector
+1. **Feature Extraction** — Audio is loaded at 22050 Hz and analyzed to produce a 26-dimensional spectral vector
 2. **Normalization** — The vector is scaled using a pre-trained `StandardScaler` to prevent feature dominance
-3. **KNN Classification** — Cosine distance is computed against 3700+ reference fingerprints (K=7, distance-weighted)
+3. **KNN Classification** — Cosine distance is computed against 3724 reference fingerprints (K=3, distance-weighted)
 4. **Result** — The instrument with highest aggregate similarity is returned with full probability distribution
 
 ---
@@ -67,22 +103,23 @@ Acoustic Guitar · Cello · Clarinet · Electric Guitar · Flute · Human Voice 
 ├── backend/
 │   ├── app.py                  # Flask server & API routes
 │   ├── classifier.py           # KNN model training & prediction
-│   ├── feature_extraction.py   # Shared 10-D feature extraction
+│   ├── feature_extraction.py   # 26-D spectral feature extraction
 │   ├── config.py               # Centralized configuration
 │   ├── build_database.py       # Script to build reference_database.pkl
+│   ├── evaluate.py             # Cross-validation & metrics
 │   └── IRMAS-TrainingData/     # Training audio dataset (not in git)
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.js              # Root component (orchestrator)
+│   │   ├── App.js              # Root component
 │   │   ├── config/
 │   │   │   ├── theme.js        # MUI dark theme
 │   │   │   └── constants.js    # Feature labels, colors, API URL
 │   │   ├── services/
 │   │   │   └── api.js          # Backend communication layer
 │   │   ├── components/
-│   │   │   ├── Header.js       # App title & branding
-│   │   │   ├── FileUpload.js   # Drag-and-drop upload
+│   │   │   ├── Header.js       # App title & navigation
+│   │   │   ├── FileUpload.js   # Drag-and-drop upload + settings panel
 │   │   │   ├── ResultCard.js   # Instrument + confidence display
 │   │   │   ├── FeatureTable.js # Numerical feature comparison
 │   │   │   └── charts/
@@ -120,7 +157,7 @@ python -m venv .venv
 # Install dependencies
 pip install -r ../requirements.txt
 
-# Build the reference database (first time only, takes ~2 min)
+# Build the reference database (first time only, ~2-3 min)
 python build_database.py
 
 # Start the API server
@@ -159,8 +196,8 @@ Upload an audio file for classification.
   "instrument": "Piano",
   "confidence_score": 87.34,
   "waveform": { "time": [...], "amplitude": [...] },
-  "feature_vector": [10 floats],
-  "compared_vector": [10 floats],
+  "feature_vector": [26 floats],
+  "compared_vector": [26 floats],
   "knn_probabilities": [{ "name": "Piano", "score": 87.34 }, ...]
 }
 ```
@@ -187,8 +224,9 @@ Server health check.
 
 - **KNN over Deep Learning** — Chosen for explainability. Users can see exactly which features drove the classification.
 - **Cosine Distance** — Works better than Euclidean for spectral fingerprints because it measures directional similarity regardless of magnitude.
-- **K=7** — Odd number prevents ties; 7 provides good balance between noise resistance and locality.
-- **StandardScaler** — Prevents high-magnitude features (like spectral centroid ~2000 Hz) from dominating low-magnitude ones (like ZCR ~0.05).
+- **K=3** — Optimal value found via grid search. Smaller K captures local structure better for tightly-clustered spectral fingerprints.
+- **26-D Vector** — Individual MFCC coefficients (instead of just mean/std) preserve per-band timbre information critical for distinguishing similar instruments.
+- **StandardScaler** — Prevents high-magnitude features (spectral centroid ~2000 Hz) from dominating low-magnitude ones (ZCR ~0.05).
 
 ---
 
@@ -196,8 +234,8 @@ Server health check.
 
 - [ ] Add audio recording directly in browser
 - [ ] Support multi-instrument detection in polyphonic audio
-- [ ] Add confusion matrix visualization for model evaluation
-- [ ] Implement user feedback loop for model improvement
+- [ ] Add confusion matrix visualization per class
+- [ ] Implement segment-based voting (split audio into chunks, majority vote)
 - [ ] Deploy with Docker (backend + frontend in one compose file)
 - [ ] Add audio augmentation for improved generalization
 
