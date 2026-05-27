@@ -23,7 +23,6 @@ coverage/
 
 # Data & Models (large binary files)
 backend/IRMAS-TrainingData/
-*.pkl
 backend/uploads/
 
 # Generated artifacts

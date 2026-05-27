@@ -93,3 +93,5 @@ def _cleanup(*paths):
 if __name__ == "__main__":
     classifier.load_and_train()
     app.run(debug=DEBUG, port=PORT)
+else:
+    classifier.load_and_train()
