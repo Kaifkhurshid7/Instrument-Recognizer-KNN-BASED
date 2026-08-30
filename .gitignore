@@ -1,40 +1,208 @@
 # =============================================================
-# Instrument Recognizer - Git Ignore
+# Instrument Recognizer - Git Ignore (Production-Grade)
 # =============================================================
 
-# Python
+# ============================================================
+# PYTHON
+# ============================================================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
 .venv/
 venv/
 ENV/
 env/
 .env
+.env.local
+.env.*.local
 
-# Node
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+*.cover
+*.log
+coverage.xml
+
+# Code formatting
+.black/
+
+# ============================================================
+# NODE.JS / FRONTEND
+# ============================================================
 node_modules/
-build/
-dist/
+npm-debug.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 .pnp
 .pnp.js
-coverage/
 
-# Data & Models (large binary files)
+# Frontend build output
+frontend/build/
+frontend/dist/
+frontend/.next/
+frontend/out/
+
+# Frontend coverage
+frontend/coverage/
+
+# ============================================================
+# DATA & MODELS (Large binary files)
+# ============================================================
 backend/IRMAS-TrainingData/
 backend/uploads/
+backend/temp/
+backend/logs/
+backend/models/
+backend/*.pkl
+backend/*.h5
+backend/*.pth
+backend/*.onnx
+*.pkl
+*.h5
+*.pth
+*.onnx
 
-# Generated artifacts
+# Audio files (temporary)
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.ogg
+
+# ============================================================
+# GENERATED ARTIFACTS
+# ============================================================
 *.png
-*.log
+*.jpg
+*.jpeg
+*.gif
+*.csv
+confusion_matrix.png
+k_vs_accuracy.png
 
-# IDEs
+# ============================================================
+# IDEs & EDITORS
+# ============================================================
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+.netbeans/
 
+# ============================================================
 # OS
+# ============================================================
 .DS_Store
 Thumbs.db
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+desktop.ini
+
+# ============================================================
+# DOCKER
+# ============================================================
+docker-compose.override.yml
+.dockerignore
+
+# ============================================================
+# CI/CD
+# ============================================================
+.github/workflows/logs/
+.gitlab-ci.yml.local
+.travis.yml.local
+
+# ============================================================
+# SECRETS & CREDENTIALS (CRITICAL - NEVER COMMIT)
+# ============================================================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.crt
+credentials.json
+secret.json
+.aws/
+.ssh/
+config/secrets/
+
+# ============================================================
+# SYSTEM & TEMPORARY FILES
+# ============================================================
+*.tmp
+*.temp
+*.cache
+*.bak
+*.backup
+~*
+*~
+.tmp/
+temp/
+tmp/
+
+# ============================================================
+# MACOS
+# ============================================================
+.AppleDouble
+.LSOverride
+._*
+.apdisk
+
+# ============================================================
+# WINDOWS
+# ============================================================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ============================================================
+# MISC
+# ============================================================
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/settings.json
